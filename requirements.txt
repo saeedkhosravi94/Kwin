@@ -1,0 +1,5 @@
+pygame-ce
+PyOpenGL
+PyOpenGL_accelerate
+Pillow
+numpy
