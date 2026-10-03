@@ -6,6 +6,7 @@ import neat
 
 INPUT_COUNT = 16
 ACTION_COUNT = 4
+
 MOVE_FORWARD = 1
 MOVE_BACKWARD = 2
 ROTATE_LEFT = 3
@@ -102,6 +103,29 @@ class NeatTrainer:
             self._save_best_checkpoint()
         if self.population.generation % 5 == 0:
             self.save_checkpoint()
+
+    def seed_population_with_best(self) -> bool:
+        self._load_best_genome()
+        if self.best_genome is None or not self.population.population:
+            return False
+
+        weakest_genome = min(
+            self.population.population.values(),
+            key=lambda genome: (
+                genome.fitness if genome.fitness is not None else float("-inf")
+            ),
+        )
+        seed = pickle.loads(pickle.dumps(self.best_genome))
+        seed.key = weakest_genome.key
+        seed.fitness = None
+        self.population.population[seed.key] = seed
+
+        for species in self.population.species.species.values():
+            if weakest_genome.key in species.members:
+                species.members[seed.key] = seed
+                break
+
+        return True
 
     def save_checkpoint(self) -> None:
         for temporary_checkpoint in self.checkpoint_dir.glob("last-checkpoint-*"):

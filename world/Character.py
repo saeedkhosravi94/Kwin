@@ -17,7 +17,6 @@ class Character:
         with torch.random.fork_rng(devices=[]):
             torch.manual_seed(0)
             self.cnn = OneLayerCNN().eval()
-            self.cnn = OneLayerCNN().eval()
 
     def forward_vector(self):
         rad = math.radians(self.angle)

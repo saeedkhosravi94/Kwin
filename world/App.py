@@ -102,6 +102,7 @@ class App:
                 if self.evolving:
                     self.stop_after_generation = not self.stop_after_generation
                 else:
+                    self.neat_trainer.seed_population_with_best()
                     self.evolving = True
                     self.stop_after_generation = False
 
@@ -370,7 +371,6 @@ class App:
                 self.targets.remove(collected)
                 self.spawn_target(random.Random())
 
-        self.capture_vision()
         self.render_display()
 
     def run(self):

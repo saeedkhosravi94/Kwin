@@ -39,3 +39,6 @@ class SugarCube:
             for vertex in face:
                 glVertex3f(*vertex)
         glEnd()
+
+
+    
