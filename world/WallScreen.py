@@ -4,7 +4,7 @@ from PIL import Image
 
 
 class WallScreen:
-    def __init__(self, resolution=512):
+    def __init__(self, resolution=256):
         self.resolution = resolution
 
         self.texture = glGenTextures(1)

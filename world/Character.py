@@ -1,9 +1,11 @@
 import math
+import torch
 from OpenGL.GL import *
+from models.cnn import OneLayerCNN, TwoLayerCNN
 
 class Character:
     def __init__(self, x=0.0, z=0.0, size=0.3, speed=4.0, turn_speed=120.0,
-                 color=(0.3, 0.75, 0.4)):
+                 color=(0.4, 0.15, 0.3)):
         self.x = x
         self.y = size
         self.z = z
@@ -12,12 +14,16 @@ class Character:
         self.speed = speed
         self.turn_speed = turn_speed
         self.color = color
+        with torch.random.fork_rng(devices=[]):
+            torch.manual_seed(0)
+            self.cnn = OneLayerCNN().eval()
+            self.cnn = OneLayerCNN().eval()
 
     def forward_vector(self):
         rad = math.radians(self.angle)
         return math.sin(rad), 0.0, -math.cos(rad)
 
-    def vision(self):
+    def vision(self, field_of_view=50.0):
         forward_x, _, forward_z = self.forward_vector()
         eye_offset = self.size * 0.9
         eye = (
@@ -30,7 +36,8 @@ class Character:
             eye[1],
             eye[2] + forward_z,
         )
-        return eye, target, (0, 1, 0), 90.0
+        return eye, target, (0, 1, 0), field_of_view
+
 
     def move(self, direction, dt):
         fx, _, fz = self.forward_vector()
@@ -92,3 +99,22 @@ class Character:
         self._quad(face_color, [(-mouth_hw, mouth_y - mouth_hh, z), (mouth_hw, mouth_y - mouth_hh, z),
                                  (mouth_hw, mouth_y + mouth_hh, z), (-mouth_hw, mouth_y + mouth_hh, z)])
         glEnd()
+
+    def brain(self, vision_frame):
+        vision_frame = vision_frame.convert("RGB").resize((64, 64))
+        width, height = vision_frame.size
+        image_tensor = torch.frombuffer(
+            bytearray(vision_frame.tobytes()), dtype=torch.uint8
+        )
+        image_tensor = (
+            image_tensor.reshape(height, width, 3)
+            .permute(2, 0, 1)
+            .to(dtype=torch.float32)
+            .div_(255.0)
+            .unsqueeze(0)
+        )
+
+        with torch.inference_mode():
+            features = self.cnn(image_tensor)
+        return features.squeeze(0).tolist()
+        

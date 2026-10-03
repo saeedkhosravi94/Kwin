@@ -3,3 +3,5 @@ PyOpenGL
 PyOpenGL_accelerate
 Pillow
 numpy
+neat-python
+torch
